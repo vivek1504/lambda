@@ -36,7 +36,9 @@ deployRouter.post("/", upload.single("code"), async (req, res) => {
     const result = await deployFunction(req.file.path);
 
     res.json({
-      msg: "Deployment Successful",
+      functionId: result.functionId,
+      status: "deployed",
+      snapshotReady: true,
       url: result.url,
     });
   } catch (err: any) {
