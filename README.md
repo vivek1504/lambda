@@ -78,10 +78,140 @@ Response → Client
 3. Firecracker VM boots and the runtime initializes
 4. A snapshot of the initialized VM state is created
 5. On each invocation:
-   - VM is restored from the snapshot
+   - Pre warm VM is used
+   - If no warm VM is present then a VM is restored from the snapshot
    - Request is sent via vsock
    - Runtime executes the handler
    - Response is returned to the client
+
+---
+
+## Usage
+
+### Prerequisites
+
+- Linux host with **KVM support** (`/dev/kvm` must be accessible)
+- [Firecracker](https://github.com/firecracker-microvm/firecracker) binary in `PATH`
+- **Node.js** v18+ and npm
+
+#### Kernel image and rootfs
+
+Pre-built demo assets are available in the [Beta release](https://github.com/vivek1504/serverless-runtime/releases/tag/Beta):
+
+| Asset | Download |
+|---|---|
+| Linux kernel image | [`vmlinux`](https://github.com/vivek1504/serverless-runtime/releases/download/Beta/vmlinux) |
+| Root filesystem | [`rootfs.ext4.gz`](https://github.com/vivek1504/serverless-runtime/releases/download/Beta/rootfs.ext4.gz) |
+
+Download and place them in the project root:
+
+```bash
+wget https://github.com/vivek1504/serverless-runtime/releases/download/Beta/vmlinux
+wget https://github.com/vivek1504/serverless-runtime/releases/download/Beta/rootfs.ext4.gz
+
+# Extract the rootfs
+gunzip rootfs.ext4.gz
+```
+
+### Installation
+
+```bash
+git clone https://github.com/vivek1504/serverless-runtime.git
+cd serverless-runtime
+
+# directories to store usercode and snapshots
+mkdir extracted mem rootfs snapshot userCode 
+
+# log file for firecracker.log
+touch firecracker.log
+
+npm install
+```
+
+Start the control plane:
+
+```bash
+npm start
+
+# listening on http://localhost:3000
+```
+
+### Deploying a Function
+
+#### Preparing your code
+
+Your function must export a `handler` using [`serverless-http`](https://github.com/dougmoscrop/serverless-http) — `app.listen` is not supported inside a microVM. Wrap your Express (or any Node.js HTTP framework) app like so:
+
+```js
+// app.js
+const express = require('express');
+const serverless = require('serverless-http');
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello from Firecracker!');
+});
+
+module.exports.handler = serverless(app);
+```
+
+Zip your project with `node_modules` included:
+
+```bash
+zip -r function.zip . # node_modules must be inside the zip
+```
+
+> **Note:** The runtime has no network access to install packages, so `node_modules` must be bundled inside the zip.
+
+#### Deploying
+
+Send the zip as a multipart form upload to `/deploy`:
+
+```bash
+curl -X POST http://localhost:3000/deploy \
+  -F "code=@function.zip"
+```
+
+Response:
+
+```json
+{
+  "functionId": "44ca883e56733724",
+  "status": "deployed",
+  "snapshotReady": true,
+  "url": "http://localhost:3000/f/44ca883e56733724"
+}
+```
+
+### Invoking a Function
+
+Use the `url` returned from the deploy response to invoke your function:
+
+```bash
+curl http://localhost:3000/f/44ca883e56733724
+```
+
+You can also pass a path or body depending on your handler's routing:
+
+```bash
+curl -X POST http://localhost:3000/f/44ca883e56733724/greet \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "John Doe" }'
+```
+
+### Running Benchmarks
+
+With the control plane running and a function deployed, run the autocannon benchmark:
+
+```bash
+npx autocannon -c 10 -d 30 -m POST \
+  -H "Content-Type: application/json" \
+  -b '{ "name": "John Doe" }' \
+  http://localhost:3000/f/44ca883e56733724
+```
+
+This replicates the benchmark configuration used to produce the performance numbers in this README (10 concurrent connections, 30-second duration).
 
 ---
 
@@ -125,15 +255,15 @@ Benchmarked using [`autocannon`](https://github.com/mcollina/autocannon) with 10
 
 ## Future Improvements
 
-- Warm VM pool for faster horizontal scaling
 - Per-function autoscaling
 - Rate limiting and priority scheduling
 - Distributed execution across multiple hosts
+
 ---
 
 ## Why This Project Matters
 
- It demonstrates:
+This project demonstrates:
 
 - Deep understanding of **OS-level virtualization**
 - Practical use of **Firecracker and microVMs**
@@ -146,5 +276,3 @@ Benchmarked using [`autocannon`](https://github.com/mcollina/autocannon) with 10
 ## Author
 
 **Vivek Jadhav** — [github.com/vivek1504](https://github.com/vivek1504)
-
-
