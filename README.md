@@ -6,7 +6,7 @@
 
 ## Overview
 
-This project is a high-performance serverless execution platform that runs user-submitted functions inside isolated Firecracker microVMs. It demonstrates how modern serverless platforms like AWS Lambda work under the hood, with a focus on low-latency execution, strong isolation, and high throughput.
+This project is a high-performance serverless execution platform that runs user-submitted functions inside isolated Firecracker microVMs. It demonstrates how modern serverless platforms like AWS Lambda work under the hood, with a focus on low-latency execution, strong isolation, and high throughput.so 
 
 ---
 
