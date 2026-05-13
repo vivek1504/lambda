@@ -6,7 +6,7 @@
 
 ## Overview
 
-This project is a high-performance serverless execution platform that runs user-submitted functions inside isolated Firecracker microVMs. It demonstrates how modern serverless platforms like AWS Lambda work under the hood, with a focus on low-latency execution, strong isolation, and high throughput.so 
+This project is a high-performance serverless execution platform that runs user-submitted functions inside isolated Firecracker microVMs. It demonstrates how modern serverless platforms like AWS Lambda work under the hood, with a focus on low-latency execution, strong isolation, and high throughput.
 
 ---
 
@@ -53,21 +53,8 @@ Pre-initialized VM state is snapshotted and restored on each invocation, dramati
 
 ## Architecture
 
-```
-Client Request (HTTP)
-        ↓
-Control Plane (Node.js)
-        ↓
-Scheduler / VM Manager
-        ↓
-Firecracker MicroVM (snapshot restore)
-        ↓
-Runtime (Node.js)
-        ↓
-User Handler Execution
-        ↓
-Response → Client
-```
+
+![Firecracker-Based Serverless Runtime Architecture](https://res.cloudinary.com/dj7gqjguy/image/upload/v1778648242/architecture_zubz31.png)
 
 ---
 
@@ -83,6 +70,8 @@ Response → Client
    - Request is sent via vsock
    - Runtime executes the handler
    - Response is returned to the client
+
+![Firecracker Serverless Runtime — Execution Flow](https://res.cloudinary.com/dj7gqjguy/image/upload/v1778650621/execution-flow_jkl9x4.png)
 
 ---
 
@@ -275,4 +264,4 @@ This project demonstrates:
 
 ## Author
 
-**Vivek Jadhav** — [github.com/vivek1504](https://github.com/vivek1504)
+**Vivek Jadhav** — [github.com/vivek1504](https://github.com/vivek1504)                         
