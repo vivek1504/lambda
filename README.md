@@ -1,12 +1,12 @@
 # Firecracker-Based Serverless Runtime
 
-> An AWS Lambda-like execution platform built on Firecracker microVMs — exploring microVM isolation, snapshot-based cold starts, IPC, and multi-tenant scheduling.
+> An AWS Lambda like execution platform built on Firecracker microVMs exploring microVM isolation, snapshot-based cold starts, IPC, and multi-tenant scheduling.
 
 ---
 
 ## Overview
 
-This project is a high-performance serverless execution platform that runs user-submitted functions inside isolated Firecracker microVMs. It demonstrates how modern serverless platforms like AWS Lambda work under the hood, with a focus on low-latency execution, strong isolation, and high throughput.
+This project is a high performance serverless execution platform that runs user submitted functions inside isolated Firecracker microVMs. It demonstrates how modern serverless platforms like AWS Lambda work under the hood, with a focus on low-latency execution, strong isolation, and high throughput.
 
 ---
 
@@ -24,18 +24,18 @@ Pre-initialized VM state is snapshotted and restored on each invocation, dramati
 
 | Boot Method | Latency |
 |---|---|
-| Cold boot | ~200ms |
-| Snapshot restore | ~1–5ms |
+| Cold boot | 200ms |
+| Snapshot restore | 1–5ms |
 
 ### High-Performance IPC
 
 - Host ↔ VM communication via **vsock**
 - Internal routing via **Unix domain sockets**
-- Eliminated per-request connection overhead for better throughput
+- Eliminated per request connection overhead for better throughput
 
 ### Custom Runtime
 
-- Node.js-based runtime executing user handlers
+- Node.js based runtime executing user handlers
 - Deterministic execution model: 1 request → 1 execution → response
 - Handles success, errors, and malformed input
 
@@ -46,13 +46,15 @@ Pre-initialized VM state is snapshotted and restored on each invocation, dramati
 
 ### Multi-Tenant Scheduling
 
-- Per-function queues with concurrency control
+- Per function queues with concurrency control
 - Fair scheduling across multiple concurrent workloads
 
 ---
 
 ## Architecture
-
+The control plane manages deployment, scheduling, snapshot orchestration,
+and request routing. Functions execute inside isolated Firecracker microVMs
+communicating with the host via vsock.
 
 ![Firecracker-Based Serverless Runtime Architecture](https://res.cloudinary.com/dj7gqjguy/image/upload/v1778648242/architecture_zubz31.png)
 
@@ -85,7 +87,7 @@ Pre-initialized VM state is snapshotted and restored on each invocation, dramati
 
 #### Kernel image and rootfs
 
-Pre-built demo assets are available in the [Beta release](https://github.com/vivek1504/serverless-runtime/releases/tag/Beta):
+Pre built demo assets are available in the [Beta release](https://github.com/vivek1504/serverless-runtime/releases/tag/Beta):
 
 | Asset | Download |
 |---|---|
@@ -244,7 +246,7 @@ Benchmarked using [`autocannon`](https://github.com/mcollina/autocannon) with 10
 
 ## Future Improvements
 
-- Per-function autoscaling
+- Per function autoscaling
 - Rate limiting and priority scheduling
 - Distributed execution across multiple hosts
 
