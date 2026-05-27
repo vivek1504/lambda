@@ -117,7 +117,7 @@ async function deployFunction(zipPath: string) {
   }
 }
 
-async function extractZip(zip: string, outputDir: string) {
+export async function extractZip(zip: string, outputDir: string) {
   await extract(zip, {
     dir: outputDir,
     onEntry: (entry) => {
@@ -173,7 +173,7 @@ async function waitForFile(path: any, timeout = 5000) {
   }
 }
 
-function createFcCient(apiSock: string) {
+export function createFcCient(apiSock: string) {
   return axios.create({
     socketPath: apiSock,
     baseURL: "http://localhost",

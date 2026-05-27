@@ -1,12 +1,4 @@
-import express from "express";
-import { deployRouter } from "./routes/deploy.js";
-import { invokeRouter } from "./routes/invoke.js";
-
-const app = express();
-app.use(express.json());
-
-app.use("/deploy", deployRouter);
-app.use("/f", invokeRouter);
+import { app } from "./app.js";
 
 app.listen(3000, () => {
   console.log("listening on http://localhost:3000");

@@ -187,7 +187,7 @@ async function restoreVm(client: any, functionId: string, Vsock: string) {
   });
 }
 
-function buildPayload(req: any, subPath: string): string {
+export function buildPayload(req: any, subPath: string): string {
   return (
     JSON.stringify({
       httpMethod: req.method,
@@ -199,7 +199,7 @@ function buildPayload(req: any, subPath: string): string {
   );
 }
 
-function readVsockResponse(
+export function readVsockResponse(
   socket: Socket,
   timeout: number,
 ): Promise<{ type: string; data: any; error?: string }> {
