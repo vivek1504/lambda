@@ -206,6 +206,48 @@ This replicates the benchmark configuration used to produce the performance numb
 
 ---
 
+## Testing
+
+The project includes a comprehensive test suite using [Vitest](https://vitest.dev/) covering the control plane, deploy pipeline, and invocation runtime.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# With coverage report
+npm run test:coverage
+```
+
+### Test Coverage
+
+| Module | Tests | What's Covered |
+|---|---|---|
+| `runtime/protocol` | Unit | Payload serialization, vsock response parsing, chunked data handling |
+| `runtime/scheduler` | Unit | Queue draining, VM creation, error propagation |
+| `runtime/cleanup` | Unit | VM teardown, idempotent cleanup |
+| `runtime/store` | Unit | State management, reset between runs |
+| `deploy/firecracker` | Unit | VM readiness detection (chunked stdout buffering), socket polling, client creation |
+| `deploy/rootfs` | Unit | Zip extraction, path traversal prevention |
+| `deploy/queue` | Unit | Job lifecycle tracking, queue concurrency |
+| `utils/path` | Unit | Path generation for all runtime artifacts |
+| `routes/deploy` | Integration | HTTP validation (400, 404, 429), job submission |
+| `routes/invoke` | Integration | Error handling, scheduler integration |
+
+### Testing Stack
+
+| Tool | Purpose |
+|---|---|
+| [Vitest](https://vitest.dev/) | Test runner and assertions |
+| [Supertest](https://github.com/ladjs/supertest) | HTTP integration testing |
+| [@vitest/coverage-v8](https://vitest.dev/guide/coverage) | Code coverage |
+
+---
+
 ## Performance
 
 Benchmarked using [`autocannon`](https://github.com/mcollina/autocannon) with 10 concurrent connections over 30 seconds:
@@ -231,6 +273,7 @@ Benchmarked using [`autocannon`](https://github.com/mcollina/autocannon) with 10
 | Host ↔ VM IPC | vsock |
 | Intra-VM IPC | Unix domain sockets |
 | Benchmarking | autocannon |
+| Testing | Vitest, Supertest |
 
 ---
 
