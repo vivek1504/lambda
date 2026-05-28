@@ -56,7 +56,7 @@ The control plane manages deployment, scheduling, snapshot orchestration,
 and request routing. Functions execute inside isolated Firecracker microVMs
 communicating with the host via vsock.
 
-![Firecracker-Based Serverless Runtime Architecture](https://res.cloudinary.com/dj7gqjguy/image/upload/v1778648242/architecture_zubz31.png)
+![Firecracker-Based Serverless Runtime Architecture](https://github.com/user-attachments/assets/3f3788f3-c1a8-4298-b926-55d57b37683a)
 
 ---
 
@@ -73,7 +73,7 @@ communicating with the host via vsock.
    - Runtime executes the handler
    - Response is returned to the client
 
-![Firecracker Serverless Runtime — Execution Flow](https://res.cloudinary.com/dj7gqjguy/image/upload/v1778650621/execution-flow_jkl9x4.png)
+![Firecracker Serverless Runtime — Execution Flow](https://github.com/user-attachments/assets/28d8348b-a7c2-4d42-8090-9dcfb8c5901e)
 
 ---
 
@@ -254,10 +254,10 @@ Benchmarked using [`autocannon`](https://github.com/mcollina/autocannon) with 10
 
 | Metric | Result |
 |---|---|
-| Throughput | ~5,400 req/sec |
-| p50 latency | ~1ms |
-| p99 latency | ~4ms |
-| Total requests | ~164,000 |
+| Throughput | ~3500 req/sec |
+| p50 latency | ~2ms |
+| p99 latency | ~10ms |
+| Total requests | ~115,000 |
 
 **Key optimizations:** snapshot reuse, persistent runtime, reduced IPC overhead.
 
