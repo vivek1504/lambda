@@ -2,22 +2,23 @@ import { pino } from "pino";
 import type { Options } from "pino-http";
 import type { LoggerOptions } from "pino";
 
-const isProd = process.env.NODE_ENV === "production";
-
 const baseOptions: LoggerOptions = {
   level: process.env.LOG_LEVEL || "info",
   redact: {
     paths: [
       "req.headers.authorization",
       "req.headers.cookie",
+      "req.headers['x-api-key']",
       "password",
       "token",
+      "*.password",
+      "*.token",
+      "*.secret",
     ],
     censor: "[REDACTED]",
   },
   timestamp: pino.stdTimeFunctions.isoTime,
 };
-
 
 export const logger = pino(baseOptions);
 
@@ -36,7 +37,10 @@ export const cleanupLogger = logger.child({ module: "cleanup" });
 export const httpLoggerOptions: Options = {
   logger: logger.child({ module: "http" }),
   autoLogging: {
-    ignore: (req) => req.url === "/health",
+    ignore: (req) =>
+      req.url === "/health" ||
+      req.url === "/ready" ||
+      req.url === "/metrics",
   },
   customLogLevel: (_req, res, err) => {
     if (res.statusCode >= 500 || err) return "error";

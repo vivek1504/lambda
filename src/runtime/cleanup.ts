@@ -1,5 +1,6 @@
 import fs from "fs";
 import { cleanupLogger } from "../utils/logger.js";
+import { vmCleanupTotal, vmCount } from "../utils/metrics.js";
 
 import type { RuntimeFunction, Vm } from "../types/types.js";
 
@@ -27,6 +28,9 @@ export async function cleanupVm(fn: RuntimeFunction, vm: Vm) {
   } catch {}
 
   fn.vms = fn.vms.filter((v) => v !== vm);
+  vmCleanupTotal.inc();
+  vmCount.dec({ function_id: fn.functionId, state: "ready" });
+
   cleanupLogger.info(
     { functionId: fn.functionId, vmId: vm.id, remainingVms: fn.vms.length },
     "VM cleanup completed",

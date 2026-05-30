@@ -1,6 +1,7 @@
 import net, { Socket } from "net";
 import { buildPayload, readVsockResponse } from "./protocol.js";
 import { transportLogger } from "../utils/logger.js";
+import { vsockConnectionTime, vsockErrors } from "../utils/metrics.js";
 import type { Vm } from "../types/types.js";
 
 export async function connectVsock(
@@ -8,16 +9,19 @@ export async function connectVsock(
   timeout = 5000,
 ): Promise<Socket> {
   transportLogger.debug({ path, timeoutMs: timeout }, "connecting to vsock");
+  const start = performance.now();
 
   return new Promise((resolve, reject) => {
-    const start = Date.now();
+    const connectStart = Date.now();
 
     const tryConnect = () => {
       const socket = net.createConnection({ path });
 
       socket.once("connect", () => {
+        const durationSec = (performance.now() - start) / 1000;
+        vsockConnectionTime.observe(durationSec);
         transportLogger.debug(
-          { path, elapsedMs: Date.now() - start },
+          { path, elapsedMs: Date.now() - connectStart },
           "vsock connected",
         );
         resolve(socket);
@@ -26,7 +30,8 @@ export async function connectVsock(
       socket.once("error", () => {
         socket.destroy();
 
-        if (Date.now() - start > timeout) {
+        if (Date.now() - connectStart > timeout) {
+          vsockErrors.inc({ error_type: "timeout" });
           transportLogger.error({ path, timeoutMs: timeout }, "vsock connection timeout");
           return reject(new Error("Vsock timeout"));
         }
