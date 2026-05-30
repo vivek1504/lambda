@@ -2,6 +2,7 @@ import { runtimeStore } from "./store.js";
 import { createVm } from "./vm-manager.js";
 import { sendRequest } from "./transport.js";
 import { schedulerLogger } from "../utils/logger.js";
+import { invocationQueueDepth } from "../utils/metrics.js";
 
 import type { RequestTask, RuntimeFunction } from "../types/types.js";
 
@@ -22,6 +23,7 @@ export async function enqueueRequest(functionId: string, task: RequestTask) {
   }
 
   fn.queue.push(task);
+  invocationQueueDepth.inc({ function_id: functionId });
   schedulerLogger.debug(
     { functionId, queueDepth: fn.queue.length },
     "request enqueued",
@@ -57,6 +59,7 @@ async function processQueue(fn: RuntimeFunction) {
       const task = fn.queue.shift();
       if (!task) return;
 
+      invocationQueueDepth.dec({ function_id: fn.functionId });
       vm.state = "busy";
       schedulerLogger.debug(
         { functionId: fn.functionId, vmId: vm.id, subPath: task.subPath },

@@ -1,5 +1,6 @@
 import type { Socket } from "net";
 import { protocolLogger } from "../utils/logger.js";
+import { vsockErrors } from "../utils/metrics.js";
 
 export function buildPayload(req: any, subPath: string): string {
   return (
@@ -32,6 +33,7 @@ export function readVsockResponse(
 
     const timer = setTimeout(() => {
       protocolLogger.error({ timeoutMs: timeout }, "function execution timeout");
+      vsockErrors.inc({ error_type: "timeout" });
       socket.destroy();
       reject(new Error("Function timeout"));
     }, timeout);
@@ -64,6 +66,7 @@ export function readVsockResponse(
             return;
           }
         } catch {
+          vsockErrors.inc({ error_type: "parse_error" });
           protocolLogger.error({ rawLine: line }, "invalid JSON received from VM");
         }
       }
@@ -72,6 +75,7 @@ export function readVsockResponse(
     onError = (err) => {
       clearTimeout(timer);
       cleanup();
+      vsockErrors.inc({ error_type: "connection_error" });
       protocolLogger.error({ err }, "vsock read error");
       reject(err);
     };
@@ -79,6 +83,7 @@ export function readVsockResponse(
     onEnd = () => {
       clearTimeout(timer);
       cleanup();
+      vsockErrors.inc({ error_type: "connection_closed" });
       protocolLogger.error("vsock connection closed before response received");
       reject(new Error("Connection closed before response"));
     };

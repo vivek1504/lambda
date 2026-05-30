@@ -4,6 +4,10 @@ import { upload } from "../deploy/upload.js";
 import { jobs, deployQueue } from "../deploy/queue.js";
 import { deployFunction } from "../deploy/pipeline.js";
 import { deployLogger } from "../utils/logger.js";
+import {
+  deployQueueDepth,
+  deployQueueWaitTime,
+} from "../utils/metrics.js";
 
 export const deployRouter = Router();
 
@@ -24,6 +28,9 @@ deployRouter.post("/", upload.single("code"), async (req, res) => {
   const jobId = crypto.randomBytes(8).toString("hex");
   jobs.set(jobId, { state: "pending" });
 
+  deployQueueDepth.inc();
+  const enqueueTime = performance.now();
+
   deployLogger.info(
     {
       jobId,
@@ -35,8 +42,14 @@ deployRouter.post("/", upload.single("code"), async (req, res) => {
   );
 
   deployQueue.add(async () => {
+    const waitDurationSec = (performance.now() - enqueueTime) / 1000;
+    deployQueueWaitTime.observe(waitDurationSec);
+
     jobs.set(jobId, { state: "running" });
-    deployLogger.info({ jobId }, "deployment job started");
+    deployLogger.info(
+      { jobId, queueWaitMs: waitDurationSec * 1000 },
+      "deployment job started",
+    );
 
     try {
       const result = await deployFunction(req.file!.path);
@@ -55,6 +68,8 @@ deployRouter.post("/", upload.single("code"), async (req, res) => {
         { jobId, err },
         "deployment job failed",
       );
+    } finally {
+      deployQueueDepth.dec();
     }
   });
 
